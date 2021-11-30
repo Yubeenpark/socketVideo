@@ -7,9 +7,12 @@ import sys
 from threading import *
 import queue
 import os
+import youtube_dl
 # For details visit pyshine.com
-
-
+import time
+frame_id = 0
+starting_time = time.time()
+elapsed_time_pause = 0
 q = queue.Queue(maxsize=10)
 
 
@@ -25,13 +28,30 @@ socket_address = (host_ip,port)
 server_socket.bind(socket_address)
 print('Listening at:',socket_address)
 
-vid = cv2.VideoCapture(1)
+#vid = cv2.VideoCapture(1)
 
             
 
 
 def generate_video():
-    
+    url = 'https://www.youtube.com/watch?v=RHw1a0WESuA'
+    ydl_opt_audio = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    # create youtube-dl o bject
+    ydl = youtube_dl.YoutubeDL(ydl_opt_audio)
+
+    info_dict = ydl.extract_info(url, download=False)
+    formats = info_dict.get('formats',None)
+    for f in formats:
+        if f.get('format_note',None) == '360p':
+            urls = f.get('url',None)
+            vid = cv2.VideoCapture(urls)
     WIDTH=400
     while(vid.isOpened()):
         try:
@@ -45,6 +65,8 @@ def generate_video():
     vid.release()
 	
 def send_video():
+    elapsed_time = time.time() - starting_time - elapsed_time_pause
+    fps = frame_id / elapsed_time
     fps,st,frames_to_count,cnt = (0,0,1,0)
     cv2.namedWindow('TRANSMITTING VIDEO')        
     cv2.moveWindow('TRANSMITTING VIDEO', 10,30) 
@@ -60,11 +82,16 @@ def send_video():
             frame = cv2.putText(frame,'FPS: '+str(round(fps,1)),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)
         
             cv2.imshow('TRANSMITTING VIDEO', frame)
-            key = cv2.waitKey(1) & 0xFF	
+            key = cv2.waitKey(25) & 0xFF	
             if key == ord('q'):
                 os._exit(1)
                 TS=False
-                break	
+                break
+            if key == ord("p"):
+                cv2.waitKey(0)
+            if key == 27:
+                break
+            
 
 def send_message():
     s = socket.socket()

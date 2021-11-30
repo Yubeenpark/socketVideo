@@ -103,7 +103,6 @@ def get_video():
         packet,_ = client_socket.recvfrom(BUFF_SIZE)
         data = base64.b64decode(packet,' /')
         npdata = np.fromstring(data,dtype=np.uint8)
-
         frame = cv2.imdecode(npdata,1)
         frame = cv2.putText(frame,'FPS: '+str(fps),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)
         cv2.imshow("RECEIVING VIDEO",frame)
@@ -113,7 +112,6 @@ def get_video():
             client_socket.close()
             os._exit(1)
             break
-
         if cnt == frames_to_count:
             try:
                 fps = round(frames_to_count/(time.time()-st),1)
