@@ -10,7 +10,9 @@ pip install -r requirements.txt
 ```
 python3 server.py
 python3 client.py
+```
 or
+```
 python server.py
 python client.py
 ```
